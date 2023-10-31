@@ -38,6 +38,7 @@ public class ClientWindow extends JFrame {
     private JTable tableArticle;
 
     private Utilisateur UT;
+    private Article article;
     private Socket socket;
 
     private static final int MESSAGE_MAX_TAILLE = 10000;
@@ -66,11 +67,18 @@ public class ClientWindow extends JFrame {
         try {
             mynet.EnvoyerData(socket,"CONSULT#1#");
             String retour = mynet.RecevoirData(socket);
+            Analyser(retour);
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(bLoggin.getParent(),e.getMessage(),
                     "IOException", JOptionPane.WARNING_MESSAGE,null);
         }
+    }
+
+    private void setImageArticle(String path){
+        Image image = new ImageIcon(path).getImage();
+        Image resisedImage = image.getScaledInstance(200,200, Image.SCALE_SMOOTH);
+        ImageArticle.setIcon(new ImageIcon(resisedImage));
     }
 
     private void initComponent()
@@ -81,10 +89,7 @@ public class ClientWindow extends JFrame {
         tableArticle.setDragEnabled(false);
         tableArticle.setShowGrid(true);
 
-
-        Image image = new ImageIcon("Client/ressources/images/pommes.jpg").getImage();
-        Image resisedImage = image.getScaledInstance(200,200, Image.SCALE_SMOOTH);
-        ImageArticle.setIcon(new ImageIcon(resisedImage));
+        setImageArticle("Client/ressources/images/pommes.jpg");
 
         bLoggin.addActionListener(new ActionListener() {
             @Override
@@ -99,11 +104,39 @@ public class ClientWindow extends JFrame {
                 }
                 else{
                     if(checkBoxNouveauClient.isSelected()){
-
+                        try {
+                            mynet.EnvoyerData(socket,("LOGIN#" + InsertLogin.getText() + "#"+ InsertPassword.getText()+"#1#"));
+                            String retour = mynet.RecevoirData(socket);
+                            Analyser(retour);
+                        }
+                        catch (IOException ex) {
+                            JOptionPane.showMessageDialog(bLoggin.getParent(),ex.getMessage(),
+                                    "IOException", JOptionPane.WARNING_MESSAGE,null);
+                        }
                     }
                     else{
-
+                        try {
+                            mynet.EnvoyerData(socket,("LOGIN#" + InsertLogin.getText() + "#"+ InsertPassword.getText()+"#0#"));
+                            String retour = mynet.RecevoirData(socket);
+                            Analyser(retour);
+                        }
+                        catch (IOException ex) {
+                            JOptionPane.showMessageDialog(bLoggin.getParent(),ex.getMessage(),
+                                    "IOException", JOptionPane.WARNING_MESSAGE,null);
+                        }
                     }
+                    bLoggin.setEnabled(false);
+                    bLoggout.setEnabled(true);
+                    checkBoxNouveauClient.setEnabled(false);
+                    bPrecedent.setEnabled(true);
+                    bSuivant.setEnabled(true);
+                    bAcheter.setEnabled(true);
+                    quantiteSelectionne.setEnabled(true);
+                    bViderPanier.setEnabled(true);
+                    bRetirerElement.setEnabled(true);
+                    bPayer.setEnabled(true);
+                    InsertPassword.setEnabled(false);
+                    InsertLogin.setEnabled(false);
                 }
             }
         });
@@ -111,7 +144,19 @@ public class ClientWindow extends JFrame {
         bLoggout.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                bLoggin.setEnabled(true);
+                bLoggout.setEnabled(false);
+                checkBoxNouveauClient.setEnabled(true);
+                checkBoxNouveauClient.setSelected(false);
+                bPrecedent.setEnabled(false);
+                bSuivant.setEnabled(false);
+                bAcheter.setEnabled(false);
+                quantiteSelectionne.setEnabled(false);
+                bViderPanier.setEnabled(false);
+                bRetirerElement.setEnabled(false);
+                bPayer.setEnabled(false);
+                InsertPassword.setEnabled(true);
+                InsertLogin.setEnabled(true);
             }
         });
 
@@ -146,7 +191,15 @@ public class ClientWindow extends JFrame {
         bPrecedent.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    mynet.EnvoyerData(socket,("CONSULT#" + String.valueOf(article.Id-1) +"#"));
+                    String retour = mynet.RecevoirData(socket);
+                    Analyser(retour);
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(bLoggin.getParent(),ex.getMessage(),
+                            "IOException", JOptionPane.WARNING_MESSAGE,null);
+                }
             }
         });
 
@@ -154,10 +207,30 @@ public class ClientWindow extends JFrame {
         bSuivant.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    mynet.EnvoyerData(socket,("CONSULT#" + String.valueOf(article.Id+1) +"#"));
+                    String retour = mynet.RecevoirData(socket);
+                    Analyser(retour);
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(bLoggin.getParent(),ex.getMessage(),
+                            "IOException", JOptionPane.WARNING_MESSAGE,null);
+                }
             }
         });
+
         UT = new Utilisateur(0);
+
+       bLoggin.setEnabled(true);
+       bLoggout.setEnabled(false);
+       checkBoxNouveauClient.setEnabled(true);
+       bPrecedent.setEnabled(false);
+       bSuivant.setEnabled(false);
+       bAcheter.setEnabled(false);
+       quantiteSelectionne.setEnabled(false);
+       bViderPanier.setEnabled(false);
+       bRetirerElement.setEnabled(false);
+       bPayer.setEnabled(false);
     }
 
     private static class TableArticleModel extends AbstractTableModel
@@ -188,11 +261,11 @@ public class ClientWindow extends JFrame {
             switch(columnIndex)
             {
                 case 0:
-                    return article.getIntitule();
+                    return article.Intitule;
                 case 1:
-                    return article.getPrix();
+                    return article.Prix;
                 case 2:
-                    return article.getStock();
+                    return article.Stock;
                 default:
                     return "-";
             }
@@ -225,7 +298,16 @@ public class ClientWindow extends JFrame {
                 break;
 
             case "CONSULT":
-
+                    article = new Article();
+                    if(Integer.parseInt(split[1]) != 0)
+                    {
+                        article.Id = Integer.parseInt(split[1]);
+                        article.Intitule = split[2];
+                        article.Prix = Float.parseFloat(split[3]);
+                        article.Stock = Integer.parseInt(split[4]);
+                        article.Image = split[5];
+                        setImageArticle("Client/ressources/images/" + article.Image);
+                    }
                 break;
             
             case "ACHAT":

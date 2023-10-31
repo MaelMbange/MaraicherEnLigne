@@ -55,7 +55,7 @@ void CreerMessageLOGIN(char* reponse, bool estReussi, int idClient)
     bzero(reponse,sizeof(reponse));
 
     if(estReussi)
-        sprintf(reponse,"LOGIN#OK#%d",idClient);
+        sprintf(reponse,"LOGIN#OK#%d#",idClient);
     else
     {
         if(idClient == -1)

@@ -1,11 +1,11 @@
 package classes.Utile;
 
 public class Article {
-    private int Id;
-    private String Intitule;
-    private float Prix;
-    private int Stock;
-    private String Image;
+    public int Id;
+    public String Intitule;
+    public float Prix;
+    public int Stock;
+    public String Image;
 
     public Article()
     {
@@ -25,43 +25,4 @@ public class Article {
         Image = image;
     }
 
-    public int getId() {
-        return Id;
-    }
-
-    public void setId(int id) {
-        Id = id;
-    }
-
-    public String getIntitule() {
-        return Intitule;
-    }
-
-    public void setIntitule(String intitule) {
-        Intitule = intitule;
-    }
-
-    public float getPrix() {
-        return Prix;
-    }
-
-    public void setPrix(float prix) {
-        this.Prix = prix;
-    }
-
-    public int getStock() {
-        return Stock;
-    }
-
-    public void setStock(int stock) {
-        this.Stock = stock;
-    }
-
-    public String getImage() {
-        return Image;
-    }
-
-    public void setImage(String image) {
-        this.Image = image;
-    }
 }
