@@ -16,6 +16,15 @@ public class Article {
         Image = "";
     }
 
+    public Article(String intitule, float prix, int stock)
+    {
+        Id = 0;
+        Intitule = intitule;
+        Prix = prix;
+        Stock = stock;
+        Image = "";
+    }
+
     public Article(int id, String intitule, float prix, int stock, String image)
     {
         Id = id;
