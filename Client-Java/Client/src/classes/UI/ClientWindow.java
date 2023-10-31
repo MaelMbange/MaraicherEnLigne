@@ -88,6 +88,7 @@ public class ClientWindow extends JFrame {
 
     private void setArticleUi(String[] split)
     {
+        System.out.println("SetArticleUI");
         article.Id = Integer.parseInt(split[1]);
         article.Intitule = split[2];
         article.Prix = Float.parseFloat(split[3]);
@@ -150,6 +151,21 @@ public class ClientWindow extends JFrame {
         bLoggout.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
+                try {
+                    mynet.EnvoyerData(socket,("LOGOUT#"));
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(bLoggout.getParent(),ex.getMessage(),
+                            "IOException", JOptionPane.WARNING_MESSAGE,null);
+                }
+
+                UT.id = 0;
+                total_caddie = 0.0f;
+                totalAPayer.setText(String.valueOf(total_caddie));
+                ta.clear();
+                tableArticle.setModel(new TableArticleModel(ta));
+
                 bLoggin.setEnabled(true);
                 bLoggout.setEnabled(false);
                 checkBoxNouveauClient.setEnabled(true);
@@ -169,21 +185,45 @@ public class ClientWindow extends JFrame {
         bPayer.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    mynet.EnvoyerData(socket,("CONFIRMER#"));
+                    String retour = mynet.RecevoirData(socket);
+                    Analyser(retour);
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(bPayer.getParent(),ex.getMessage(),
+                            "IOException", JOptionPane.WARNING_MESSAGE,null);
+                }
             }
         });
 
         bViderPanier.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    mynet.EnvoyerData(socket,("CANCEL_ALL#"));
+                    String retour = mynet.RecevoirData(socket);
+                    Analyser(retour);
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(bViderPanier.getParent(),ex.getMessage(),
+                            "IOException", JOptionPane.WARNING_MESSAGE,null);
+                }
             }
         });
 
         bRetirerElement.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                try {
+                    mynet.EnvoyerData(socket,("CANCEL#" + tableArticle.getSelectedRow() + "#"));
+                    String retour = mynet.RecevoirData(socket);
+                    Analyser(retour);
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(bRetirerElement.getParent(),ex.getMessage(),
+                            "IOException", JOptionPane.WARNING_MESSAGE,null);
+                }
             }
         });
 
@@ -239,6 +279,7 @@ public class ClientWindow extends JFrame {
         });
 
         UT = new Utilisateur(0);
+        article = new Article();
 
        bLoggin.setEnabled(true);
        bLoggout.setEnabled(false);
@@ -331,7 +372,7 @@ public class ClientWindow extends JFrame {
                 break;
 
             case "CONSULT":
-                    article = new Article();
+                    System.out.println("id = " + split[1]);
                     if(Integer.parseInt(split[1]) != 0)
                     {
                         setArticleUi(split);
@@ -375,7 +416,7 @@ public class ClientWindow extends JFrame {
                     float prix_ = 0.0f;
                     ta.clear();
 
-                    System.out.println("here: " + split.length);
+                    //System.out.println("here: " + split.length);
                     for(int i = 1; i < split.length-1; i += 4)
                     {
                         intitule_ = split[i+1];
@@ -390,7 +431,8 @@ public class ClientWindow extends JFrame {
                 break;
 
             case "CANCEL":
-                    if(split[1] == "OK")
+                    System.out.println(split[1]);
+                    if(split[1].equals("OK"))
                     {
                         try {
                             total_caddie = 0.0f;
