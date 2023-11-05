@@ -11,10 +11,10 @@ public class TestDuDAL {
         try {
             JavaServerDAL jsd = JavaServerDAL.getFactory("192.168.0.202");
 
-            ResultSet res = jsd.GET(new RequeteSQLGetLogin("clients","LeH","1234"));
+            ResultSet res = jsd.GET(new RequeteSQLGetLogin("Wagner","1234"));
             boolean hasContent = false;
             while(res.next()){
-                System.out.println("login:" + res.getString("login") + " | mdp:" + res.getString("password"));
+                System.out.println("Exists : " + String.valueOf(res.getBoolean(1)).toUpperCase() + " | ID: " + res.getInt(2));
                 hasContent = true;
             }
             if(!hasContent)
