@@ -19,7 +19,6 @@ public class ServerGui extends JFrame implements Logs {
     private JLabel LabelProtocol;
     private JRadioButton radioButtonDemande;
     private JRadioButton radioButtonPool;
-    private JTextField textFieldNombreThreads;
     private JButton buttonDemarrer;
     private JButton buttonStop;
     private JTable tableLogs;
@@ -31,6 +30,19 @@ public class ServerGui extends JFrame implements Logs {
     private String IPAddress;
     private int port;
     private ButtonGroup bg;
+    private Logs logger = new Logs() {
+        @Override
+        public void writeLog(String s) {
+            try(FileWriter fos = new FileWriter("./logs",true))
+            {
+                fos.append(s);
+                fos.append("\n");
+            }
+            catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    };
 
     public ServerGui() {
         initcomponnent();
@@ -41,7 +53,8 @@ public class ServerGui extends JFrame implements Logs {
     private void initcomponnent(){
         String[] columnNames = {"Threads","Action"};
         tableLogs.setModel(new DefaultTableModel(new Object[]{"Threads","Action"},0));
-
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setContentPane(panel1);
         bg = new ButtonGroup();
         bg.add(radioButtonDemande);
         bg.add(radioButtonPool);
@@ -66,15 +79,15 @@ public class ServerGui extends JFrame implements Logs {
                 try
                 {
                     //IP_ADDR eest pour le lien avec la base de donnée
-                    protocolePayement protocole = new protocolePayement((Logs)buttonDemarrer.getParent(),IPAddress);
+                    protocolePayement protocole = new protocolePayement(ServerGui.this,IPAddress);
 
                     if (radioButtonDemande.isSelected())
-                        threadServer = new OnDemandMainServerThread(port,protocole,(Logs)buttonDemarrer.getParent());
+                        threadServer = new OnDemandMainServerThread(port,protocole,ServerGui.this);
 
                     if (radioButtonPool.isSelected())
                     {
-                        int taillePool = Integer.parseInt(textFieldNombreThreads.getText());
-                        threadServer = new OnPoolMainServerThread(port,protocole,taillePool,(Logs)buttonDemarrer.getParent());
+                        int taillePool = Integer.parseInt(LabelThreads.getText());
+                        threadServer = new OnPoolMainServerThread(port,protocole,taillePool,ServerGui.this);
                     }
 
                     videLogs();
@@ -91,7 +104,7 @@ public class ServerGui extends JFrame implements Logs {
                 }
                 catch (IOException ex)
                 {
-                    JOptionPane.showMessageDialog(buttonDemarrer.getParent(),"Erreur I/O !","Erreur...",JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(buttonDemarrer.getParent(),ex.getMessage());
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(buttonDemarrer.getParent(),ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
                 }
@@ -104,6 +117,10 @@ public class ServerGui extends JFrame implements Logs {
                 videLogs();
             }
         });
+
+        buttonDemarrer.setEnabled(true);
+        buttonStop.setEnabled(false);
+        pack();
     }
 
     @Override
@@ -146,7 +163,7 @@ public class ServerGui extends JFrame implements Logs {
         try {
             FileOutputStream fos = new FileOutputStream("./properties");
             Properties prop = new Properties();
-            prop.setProperty("PORT_ACHAT","5000");
+            prop.setProperty("PORT_ACHAT","3306");
             prop.setProperty("THREADS","10");
             prop.setProperty("IP_ADDR","localhost");
             prop.store(fos,null);
