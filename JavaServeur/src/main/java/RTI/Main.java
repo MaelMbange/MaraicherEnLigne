@@ -1,4 +1,5 @@
-package RTI.PROJET;
+package RTI;
+
 import RTI.GUI.ServerGui;
 
 public class Main {
