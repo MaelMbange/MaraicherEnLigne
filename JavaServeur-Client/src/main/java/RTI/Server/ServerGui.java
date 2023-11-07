@@ -1,4 +1,4 @@
-package RTI.GUI;
+package RTI.Server;
 
 import rti.serveur.AbstractMainServerThread;
 import RTI.PROJET.protocoles.*;
