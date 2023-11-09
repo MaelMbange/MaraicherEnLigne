@@ -79,7 +79,7 @@ public class ServerGui extends JFrame implements Logs {
                 try
                 {
                     //IP_ADDR eest pour le lien avec la base de donnée
-                    protocolePayement protocole = new protocolePayement(ServerGui.this,IPAddress);
+                    protocolePayementV2 protocole = new protocolePayementV2(ServerGui.this,IPAddress);
 
                     if (radioButtonDemande.isSelected())
                         threadServer = new OnDemandMainServerThread(port,protocole,ServerGui.this);
