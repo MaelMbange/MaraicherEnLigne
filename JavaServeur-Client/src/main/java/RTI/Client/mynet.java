@@ -16,7 +16,7 @@ public class mynet {
             oos.writeObject(new NewRequest(NewMessageDataType.GET_FACTURES,String.valueOf(idClient)));
         }
         catch (IOException ex) {
-            throw new RuntimeException(ex);
+            System.out.println("Error I/O : " + ex.getMessage());
         }
     }
 
@@ -26,7 +26,7 @@ public class mynet {
             oos.writeObject(new NewRequest(NewMessageDataType.LOGIN,username+"/"+password));
         }
         catch (IOException ex) {
-            throw new RuntimeException(ex);
+            System.out.println("Error I/O : " + ex.getMessage());
         }
     }
 
@@ -36,7 +36,7 @@ public class mynet {
             oos.writeObject(new NewRequest(NewMessageDataType.PAY_FACTURE,idFacture+"/"+proprietaire+"/"+NumeroCarte));
         }
         catch (IOException ex) {
-            throw new RuntimeException(ex);
+            System.out.println("Error I/O : " + ex.getMessage());
         }
     }
 
@@ -46,18 +46,18 @@ public class mynet {
             oos.writeObject(new NewRequest(NewMessageDataType.LOGOUT,""));
         }
         catch (IOException ex) {
-            throw new RuntimeException(ex);
+            System.out.println("Error I/O : " + ex.getMessage());
         }
     }
 
     public static NewReponse RecevoirReponse(Socket csocket){
         try{
             ObjectInputStream ois = new ObjectInputStream(csocket.getInputStream());
-            NewReponse rep = (NewReponse)ois.readObject();
-            return rep;
+            return (NewReponse)ois.readObject();
         }
         catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            System.out.println("Error I/O : " + e.getMessage());
         }
+        return null;
     }
 }

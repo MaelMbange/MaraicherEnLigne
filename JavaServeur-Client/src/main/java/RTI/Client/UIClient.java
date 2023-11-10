@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -23,6 +24,7 @@ public class UIClient extends JFrame{
     private JButton payerButton;
     private JTextField textFieldCARTE;
     private JTextField textFieldPROPRIETAIRE;
+    private JButton afficherLesFacturesButton;
     private List<Facture> tf;
     private Socket csocket;
     private int idClient;
@@ -43,7 +45,7 @@ public class UIClient extends JFrame{
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setContentPane(panel1);
 
-        tf = new Vector<>();
+        tf = new ArrayList<>(){};
         tableFacture.setModel(new TableFactureModel(tf));
         tableFacture.setVisible(true);
         tableFacture.setCellEditor(null);
@@ -61,23 +63,35 @@ public class UIClient extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 try {
                     csocket = new Socket(ipADDR,port);
+                    //
                     mynet.EnvoyerLogin(csocket,textFieldUsername.getText(),textFieldPassword.getText());
                     NewReponse reponse = mynet.RecevoirReponse(csocket);
-                    treatement(reponse);
+                    idClient = Integer.parseInt(reponse.getContent().split("/")[1]);
+                    setOptionPane(reponse.getContent());
+
+                    csocket.close();
                 }
                 catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
+                setLoginOK();
             }
         });
 
         logoutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mynet.EnvoyerLogout(csocket);
-                NewReponse reponse = mynet.RecevoirReponse(csocket);
-                treatement(reponse);
-                //setLogoutOK();
+                try {
+                    csocket = new Socket(ipADDR,port);
+                    mynet.EnvoyerLogout(csocket);
+                    NewReponse reponse = mynet.RecevoirReponse(csocket);
+                    csocket.close();
+                    setOptionPane(reponse.getContent());
+                }
+                catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                setLogoutOK();
             }
         });
 
@@ -88,14 +102,37 @@ public class UIClient extends JFrame{
                     JOptionPane.showMessageDialog(UIClient.this,"Champs manquants pour le paiement : Numero carte/Nom proprietaire");
                 }
                 else{
-                    Facture f = (Facture) tableFacture.getValueAt(tableFacture.getSelectedRow(),tableFacture.getSelectedColumn());
-                    mynet.EnvoyerPayerFacture(csocket,f.getIdFacture(),textFieldPROPRIETAIRE.getText(),textFieldCARTE.getText());
-                    NewReponse reponse = mynet.RecevoirReponse(csocket);
-                    treatement(reponse);
+
+                    try {
+                        csocket = new Socket(ipADDR,port);
+                        mynet.EnvoyerPayerFacture(csocket,1,"Mael","05628229");
+                        NewReponse reponse = mynet.RecevoirReponse(csocket);
+                        csocket.close();
+                        setOptionPane(reponse.getContent());
+                    }
+                    catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         });
 
+        afficherLesFacturesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                try {
+                    csocket = new Socket(ipADDR,port);
+                    mynet.EnvoyerGetFactures(csocket,idClient);
+                    NewReponse reponse = mynet.RecevoirReponse(csocket);
+                    csocket.close();
+                    setOptionPane(reponse.getContent());
+                }
+                catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
         setLogoutOK();
     }
 
@@ -116,63 +153,9 @@ public class UIClient extends JFrame{
         JOptionPane.showMessageDialog(this,message);
     }
 
-    public void setTableArticle(List<Facture> fa){
-        tf = fa;
-        tableFacture.setModel(new TableFactureModel(tf));
-    }
-
-    public List<Facture> refactorFacture(String content){
-        String[] ref_content = content.split("/");
-        List<Facture> f = new Vector<>();
-        if(!ref_content[0].equals("false")) {
-            for (int i = 0; i < ref_content.length - 1; i += 4) {
-                f.add(new Facture(Integer.parseInt(ref_content[i]), LocalDate.parse(ref_content[i + 1]),
-                        Float.parseFloat(ref_content[i + 2]), Boolean.parseBoolean(ref_content[i + 3])));
-            }
-            return f;
-        }
-        return new Vector<>();
-    }
-
     private void treatement(NewReponse reponse){
-        NewReponse nr = reponse;
-        setOptionPane(nr.getHeader());
 
-        String[] content = nr.getContent().split("/");
-
-        if(nr.getHeader().equals(NewMessageDataType.LOGIN)){
-            if(!content[0].equals("false"))
-            {
-                setOptionPane("Votre id est :" + content[1]);
-                setLoginOK();
-                idClient = (Integer.parseInt(content[1]));
-                /*mynet.EnvoyerGetFactures(csocket,idClient);
-                NewReponse reponse2 = mynet.RecevoirReponse(csocket);
-                treatement(reponse2);*/
-            }
-            else
-                setOptionPane("Le login a echoue!");
-        }
-        else if (nr.getHeader().equals(NewMessageDataType.GET_FACTURES)){
-            List<Facture> fa = refactorFacture(nr.getContent());
-            setTableArticle(fa);
-        }
-        else if (nr.getHeader().equals(NewMessageDataType.PAY_FACTURE)){
-            if(content[0].equals("true")){
-                setOptionPane("Paiement validé!");
-                /*mynet.EnvoyerGetFactures(csocket,idClient);
-                NewReponse reponse2 = mynet.RecevoirReponse(csocket);
-                treatement(reponse2);*/
-            }
-            else
-                setOptionPane("Paiement echoue!");
-        }
-        else if(nr.getHeader().equals(NewMessageDataType.LOGOUT)){
-            setOptionPane("Logout!");
-            setLogoutOK();
-        }
     }
-
 
     private static class TableFactureModel extends AbstractTableModel
     {

@@ -32,7 +32,7 @@ public class protocolePayementV2 implements Protocol {
     }
 
     @Override
-    public Response treatment(Request request, Socket socket) throws EndConnexionException {
+    public synchronized Response treatment(Request request, Socket socket) throws EndConnexionException {
         NewRequest requete = (NewRequest)request;
         logger.writeLog("Requete = " + requete.getHeader() + " : " + requete.getContent());
         try
@@ -42,6 +42,7 @@ public class protocolePayementV2 implements Protocol {
             }
             if(requete.getHeader().equals(NewMessageDataType.LOGOUT)) {
                 traiteRequeteLogout();
+                return null;
             }
             if(requete.getHeader().equals(NewMessageDataType.GET_FACTURES)){
                 return traiteRequeteGetFactures(requete);
@@ -100,13 +101,15 @@ public class protocolePayementV2 implements Protocol {
         return new NewReponse(NewMessageDataType.GET_FACTURES,content);
     }
 
-    private synchronized NewReponse traiteRequetePayFacture(NewRequest request) throws EndConnexionException, SQLException {
+    private synchronized NewReponse traiteRequetePayFacture(NewRequest request) throws SQLException {
         logger.writeLog("REQUEST [PAY-FACTURE= RECIEVED]");
 
         String[] split = request.getContent().split("/");
         int rd = ThreadLocalRandom.current().nextInt(2)%2;
-        if(rd == 1)
-            return new NewReponse(NewMessageDataType.PAY_FACTURE,"false");
+        if(rd == 1) {
+            logger.writeLog("RESPONSE [PAY-FACTURE= FALSE]");
+            return new NewReponse(NewMessageDataType.PAY_FACTURE, "false");
+        }
             //return new ReponsePayFacture(false);
         int resultat = jsd.POSTUPDATE(new RequeteSQLPayFacture(Integer.parseInt(split[0])));
         if(resultat > 0) {
