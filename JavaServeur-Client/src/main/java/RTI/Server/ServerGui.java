@@ -16,7 +16,7 @@ import java.util.Vector;
 
 public class ServerGui extends JFrame implements Logs {
     private JPanel panel1;
-    private JLabel LabelProtocol;
+    private JLabel LabelProtocolV2;
     private JRadioButton radioButtonDemande;
     private JRadioButton radioButtonPool;
     private JButton buttonDemarrer;

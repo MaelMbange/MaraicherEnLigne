@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class mynet {
-    public static void EnvoyerGetFactures(Socket csocket, int idClient){
+    /*public static void EnvoyerGetFactures(Socket csocket, int idClient){
         try {
             ObjectOutputStream oos = new ObjectOutputStream(csocket.getOutputStream());
             oos.writeObject(new NewRequest(NewMessageDataType.GET_FACTURES,String.valueOf(idClient)));
@@ -59,5 +59,5 @@ public class mynet {
             System.out.println("Error I/O : " + e.getMessage());
         }
         return null;
-    }
+    }*/
 }

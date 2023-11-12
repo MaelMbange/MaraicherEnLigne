@@ -8,6 +8,8 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,11 +27,16 @@ public class UIClient extends JFrame{
     private JTextField textFieldCARTE;
     private JTextField textFieldPROPRIETAIRE;
     private JButton afficherLesFacturesButton;
-    private List<Facture> tf;
+
     private Socket csocket;
-    private int idClient;
     private String IPaddr;
     private int port;
+
+    private List<Facture> tf;
+    private int idClient;
+
+    ObjectInputStream ois   = null;
+    ObjectOutputStream oos  = null;
 
 
     public UIClient(String ipADDR, int port){
@@ -38,6 +45,7 @@ public class UIClient extends JFrame{
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(null,e.getMessage());
+            System.exit(1);
         }
     }
 
@@ -48,7 +56,6 @@ public class UIClient extends JFrame{
         tf = new ArrayList<>(){};
         tableFacture.setModel(new TableFactureModel(tf));
         tableFacture.setVisible(true);
-        tableFacture.setCellEditor(null);
         tableFacture.setDragEnabled(false);
         tableFacture.setShowGrid(true);
 
@@ -56,25 +63,25 @@ public class UIClient extends JFrame{
         this.port = port;
         csocket = null;
 
+        idClient = 0;
+
         pack();
 
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
+                    //if(csocket != null) csocket.close();
                     csocket = new Socket(ipADDR,port);
-                    //
-                    mynet.EnvoyerLogin(csocket,textFieldUsername.getText(),textFieldPassword.getText());
-                    NewReponse reponse = mynet.RecevoirReponse(csocket);
-                    idClient = Integer.parseInt(reponse.getContent().split("/")[1]);
-                    setOptionPane(reponse.getContent());
+                    oos = new ObjectOutputStream(csocket.getOutputStream());
+                    ois = new ObjectInputStream(csocket.getInputStream());
 
-                    csocket.close();
+                    EnvoyerLogin(textFieldUsername.getText(),textFieldPassword.getText());
+                    AnalyseReponse(RecevoirReponse());
                 }
                 catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                setLoginOK();
             }
         });
 
@@ -82,13 +89,10 @@ public class UIClient extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    csocket = new Socket(ipADDR,port);
-                    mynet.EnvoyerLogout(csocket);
-                    NewReponse reponse = mynet.RecevoirReponse(csocket);
                     csocket.close();
-                    setOptionPane(reponse.getContent());
-                }
-                catch (IOException ex) {
+                    oos = null;
+                    ois = null;
+                } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
                 setLogoutOK();
@@ -98,20 +102,23 @@ public class UIClient extends JFrame{
         payerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(textFieldPROPRIETAIRE.getText().isEmpty() && textFieldPassword.getText().isEmpty()){
+                //setOptionPane("proprietaire:" + textFieldPROPRIETAIRE.getText().isBlank() + " password:" + textFieldPassword.getText().isBlank());
+                if(textFieldPROPRIETAIRE.getText().isBlank() && textFieldCARTE.getText().isBlank()){
                     JOptionPane.showMessageDialog(UIClient.this,"Champs manquants pour le paiement : Numero carte/Nom proprietaire");
                 }
                 else{
-
-                    try {
-                        csocket = new Socket(ipADDR,port);
-                        mynet.EnvoyerPayerFacture(csocket,1,"Mael","05628229");
-                        NewReponse reponse = mynet.RecevoirReponse(csocket);
-                        csocket.close();
-                        setOptionPane(reponse.getContent());
+                    //setOptionPane("Row = " + tableFacture.getSelectedRow());
+                    if(tableFacture.getSelectedRow() < 0)
+                    {
+                        setOptionPane("Selectionner une facture !");
                     }
-                    catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                    else
+                    {
+                        int facture = (int)tableFacture.getValueAt(tableFacture.getSelectedRow(),0);
+                        //setOptionPane("idFacture = " + facture.getIdFacture());
+                        EnvoyerPayerFacture(facture,textFieldPROPRIETAIRE.getText(),textFieldPassword.getText());
+
+                        AnalyseReponse(RecevoirReponse());
                     }
                 }
             }
@@ -120,17 +127,15 @@ public class UIClient extends JFrame{
         afficherLesFacturesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                tf.clear();
+                tableFacture.setModel(new TableFactureModel(tf));
+                if(idClient != 0)
+                    EnvoyerGetFactures(idClient);
+                else EnvoyerGetFactures(2);
 
-                try {
-                    csocket = new Socket(ipADDR,port);
-                    mynet.EnvoyerGetFactures(csocket,idClient);
-                    NewReponse reponse = mynet.RecevoirReponse(csocket);
-                    csocket.close();
-                    setOptionPane(reponse.getContent());
-                }
-                catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                AnalyseReponse(RecevoirReponse());
+                /*NewReponse reponse =  RecevoirReponse();
+                setOptionPane(reponse.getContent());*/
             }
         });
         setLogoutOK();
@@ -140,21 +145,21 @@ public class UIClient extends JFrame{
         loginButton.setEnabled(false);
         logoutButton.setEnabled(true);
         payerButton.setEnabled(true);
+        textFieldUsername.setEnabled(false);
+        textFieldPassword.setEnabled(false);
     }
 
     public void setLogoutOK(){
         loginButton.setEnabled(true);
         logoutButton.setEnabled(false);
         payerButton.setEnabled(false);
+        textFieldUsername.setEnabled(true);
+        textFieldPassword.setEnabled(true);
         tf.clear();
     }
 
     public void setOptionPane(String message){
         JOptionPane.showMessageDialog(this,message);
-    }
-
-    private void treatement(NewReponse reponse){
-
     }
 
     private static class TableFactureModel extends AbstractTableModel
@@ -201,5 +206,99 @@ public class UIClient extends JFrame{
         public String getColumnName(int column) {
             return COLUMNS[column];
         }
+    }
+
+    public NewReponse RecevoirReponse(){
+        try{
+            return (NewReponse)ois.readObject();
+        }
+        catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error I/O : " + e.getMessage());
+        }
+        return null;
+    }
+
+    public void EnvoyerGetFactures(int idClient){
+        try {
+            oos.writeObject(new NewRequest(NewMessageDataType.GET_FACTURES,String.valueOf(idClient)));
+        }
+        catch (IOException ex) {
+            System.out.println("Error I/O : " + ex.getMessage());
+        }
+    }
+
+    public void EnvoyerLogin(String username,String password){
+        try {
+            oos.writeObject(new NewRequest(NewMessageDataType.LOGIN,username+"/"+password));
+        }
+        catch (IOException ex) {
+            System.out.println("Error I/O : " + ex.getMessage());
+        }
+    }
+
+    public void EnvoyerPayerFacture(int idFacture,String proprietaire,String NumeroCarte){
+        try {
+            oos.writeObject(new NewRequest(NewMessageDataType.PAY_FACTURE,idFacture+"/"+proprietaire+"/"+NumeroCarte));
+        }
+        catch (IOException ex) {
+            System.out.println("Error I/O : " + ex.getMessage());
+        }
+    }
+
+    public void AnalyseReponse(NewReponse reponse){
+
+        String[] sp = reponse.getContent().split("/");
+
+        switch(reponse.getHeader()){
+            case "LOGIN" :
+                    if(Boolean.parseBoolean(sp[0])){
+                        idClient = Integer.parseInt(sp[1]);
+                        setOptionPane("Identifiant: " + idClient);
+                        setLoginOK();
+
+                        EnvoyerGetFactures(idClient);
+                        AnalyseReponse(RecevoirReponse());
+                    }
+                    else
+                        setOptionPane("Informations de connexion erronnées!");
+                break;
+
+            case "LOGOUT":
+                try {
+                    oos = null;
+                    ois = null;
+                    csocket.close();
+                    setLogoutOK();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+
+            case "GETFACTURES" :
+                tf.clear();
+                if(!sp[0].equals("false")){
+                    for(int i = 0; i < sp.length-1;i += 4){
+                        tf.add(new Facture(Integer.parseInt(sp[i]),LocalDate.parse(sp[i+1]),Float.parseFloat(sp[i+2]),Boolean.parseBoolean(sp[i+3])));
+                    }
+                    tableFacture.setModel(new TableFactureModel(tf));
+                }
+                break;
+
+            case "PAYFACTURE":
+                if(Boolean.parseBoolean(sp[0])){
+                    setOptionPane("Payement reussi!");
+
+                    EnvoyerGetFactures(idClient);
+                    AnalyseReponse(RecevoirReponse());
+                }
+                else setOptionPane("Payement échoué!");
+                break;
+
+            default:
+                System.out.println("Erreur : Bad response recieved!");
+                break;
+        }
+
     }
 }
