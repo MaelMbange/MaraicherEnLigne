@@ -52,7 +52,7 @@ public class ServerGui extends JFrame implements Logs {
 
     private void initcomponnent(){
         String[] columnNames = {"Threads","Action"};
-        tableLogs.setModel(new DefaultTableModel(new Object[]{"Threads","Action"},0));
+        tableLogs.setModel(new DefaultTableModel(columnNames,0));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setContentPane(panel1);
         bg = new ButtonGroup();
