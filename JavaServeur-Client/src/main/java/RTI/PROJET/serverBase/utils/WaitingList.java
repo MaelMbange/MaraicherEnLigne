@@ -24,6 +24,7 @@ public class WaitingList {
 
     public synchronized void closeConnections() throws IOException {
         for(Socket s : waitingList)
-            s.close();
+            if(s != null)
+                s.close();
     }
 }

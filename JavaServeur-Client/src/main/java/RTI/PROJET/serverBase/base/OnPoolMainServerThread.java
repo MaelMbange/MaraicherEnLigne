@@ -45,8 +45,8 @@ public class OnPoolMainServerThread extends AbstractMainServerThread {
             }
         }
         try{
-            serverSocket.close();
             waitingList.closeConnections();
+            serverSocket.close();
         }
         catch (IOException e) {
             System.out.println("Error append while closing socket");

@@ -2,6 +2,8 @@ package RTI.PROJET.serverBase.base.SecondaryServerThread;
 
 import RTI.PROJET.serverBase.utils.*;
 
+import java.io.IOException;
+
 public class OnPoolSecondaryServerThread extends AbstractSecondaryServerThread {
     private WaitingList waitingList;
 

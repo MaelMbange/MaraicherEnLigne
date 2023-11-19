@@ -29,6 +29,8 @@ public class ServerGui extends JFrame implements Logs {
     private AbstractMainServerThread threadServer;
     private String IPAddress;
     private int port;
+    private int port_secure;
+
     private ButtonGroup bg;
     private Logs logger = new Logs() {
         @Override
@@ -52,8 +54,7 @@ public class ServerGui extends JFrame implements Logs {
 
     private void initcomponnent(){
         String[] columnNames = {"Threads","Action"};
-        tableLogs = new JTable();
-        tableLogs.setModel(new DefaultTableModel(columnNames,0));
+        tableLogs.setModel(new DefaultTableModel(new Object[]{"Threads","Action"},0));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setContentPane(panel1);
         bg = new ButtonGroup();
@@ -83,7 +84,7 @@ public class ServerGui extends JFrame implements Logs {
                     protocolePayementV2 protocole = new protocolePayementV2(ServerGui.this,IPAddress);
 
                     if (radioButtonDemande.isSelected())
-                        threadServer = new OnDemandMainServerThread(port,protocole,ServerGui.this);
+                        threadServer = new OnDemandMainServerThread(port_secure,protocole,ServerGui.this);
 
                     if (radioButtonPool.isSelected())
                     {
@@ -143,14 +144,26 @@ public class ServerGui extends JFrame implements Logs {
         try {
             if(!new File("./properties").exists()){
                 saveProperties();
+                JOptionPane.showMessageDialog(this,"Please Configure the properties file.");
+                System.exit(1);
             }
             FileInputStream fis = new FileInputStream("./properties");
             Properties prop = new Properties();
             prop.load(fis);
-            LabelPort.setText(prop.getProperty("PORT_ACHAT"));
+            if(prop.size() < 4){
+                saveProperties();
+                JOptionPane.showMessageDialog(this,"Please Configure the properties file.");
+                System.exit(1);
+            }
+            if(prop.getProperty("DB_IP_ADDR").equalsIgnoreCase("__PUT_SERVER_ADDRESS__")){
+                JOptionPane.showMessageDialog(this,"Please Configure the database server address.");
+                System.exit(1);
+            }
+            LabelPort.setText(prop.getProperty("PORT_ACHAT") + "/S-" + prop.getProperty("PORT_ACHAT_SECURE"));
             LabelThreads.setText(prop.getProperty("THREADS"));
-            IPAddress = prop.getProperty("IP_ADDR");
+            IPAddress = prop.getProperty("DB_IP_ADDR");
             port = Integer.parseInt(prop.getProperty("PORT_ACHAT"));
+            port_secure = Integer.parseInt(prop.getProperty("PORT_ACHAT_SECURE"));
             fis.close();
         }
         catch (FileNotFoundException e) {
@@ -164,9 +177,10 @@ public class ServerGui extends JFrame implements Logs {
         try {
             FileOutputStream fos = new FileOutputStream("./properties");
             Properties prop = new Properties();
-            prop.setProperty("PORT_ACHAT","3306");
+            prop.setProperty("PORT_ACHAT","5500");
+            prop.setProperty("PORT_ACHAT_SECURE","6500");
             prop.setProperty("THREADS","10");
-            prop.setProperty("IP_ADDR","localhost");
+            prop.setProperty("DB_IP_ADDR","__PUT_SERVER_ADDRESS__");
             prop.store(fos,null);
             fos.close();
         }

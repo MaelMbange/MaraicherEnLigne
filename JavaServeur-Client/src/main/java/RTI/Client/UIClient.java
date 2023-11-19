@@ -157,6 +157,7 @@ public class UIClient extends JFrame{
         textFieldUsername.setEnabled(true);
         textFieldPassword.setEnabled(true);
         tf.clear();
+        tableFacture.setModel(new TableFactureModel(tf));
     }
 
     public void setOptionPane(String message){
