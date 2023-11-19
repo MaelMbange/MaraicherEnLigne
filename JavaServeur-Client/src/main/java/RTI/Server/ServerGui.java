@@ -52,6 +52,7 @@ public class ServerGui extends JFrame implements Logs {
 
     private void initcomponnent(){
         String[] columnNames = {"Threads","Action"};
+        tableLogs = new JTable();
         tableLogs.setModel(new DefaultTableModel(columnNames,0));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setContentPane(panel1);
