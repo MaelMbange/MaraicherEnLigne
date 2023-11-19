@@ -28,10 +28,12 @@ public class UIClient extends JFrame{
     private JTextField textFieldCARTE;
     private JTextField textFieldPROPRIETAIRE;
     private JButton afficherLesFacturesButton;
+    private JCheckBox checkBoxSecure;
 
     private Socket csocket;
     private String IPaddr;
     private int port;
+    private int port_secure;
 
     private List<Facture> tf;
     private int idClient;
@@ -40,9 +42,9 @@ public class UIClient extends JFrame{
     ObjectOutputStream oos  = null;
 
 
-    public UIClient(String ipADDR, int port){
+    public UIClient(String ipADDR, int port,int port_secure){
         try {
-            initComponent(ipADDR, port);
+            initComponent(ipADDR, port,port_secure);
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(null,e.getMessage());
@@ -50,7 +52,7 @@ public class UIClient extends JFrame{
         }
     }
 
-    private void initComponent(String ipADDR, int port) throws IOException {
+    private void initComponent(String ipADDR, int port, int port_secure) throws IOException {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setContentPane(panel1);
 
@@ -62,6 +64,7 @@ public class UIClient extends JFrame{
 
         this.IPaddr = ipADDR;
         this.port = port;
+        this.port_secure = port_secure;
         csocket = null;
 
         idClient = 0;
@@ -73,7 +76,10 @@ public class UIClient extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 try {
                     //if(csocket != null) csocket.close();
-                    csocket = new Socket(ipADDR,port);
+                    if(checkBoxSecure.isSelected())
+                        csocket = new Socket(ipADDR,port_secure);
+                    else
+                        csocket = new Socket(ipADDR,port);
                     oos = new ObjectOutputStream(csocket.getOutputStream());
                     ois = new ObjectInputStream(csocket.getInputStream());
 

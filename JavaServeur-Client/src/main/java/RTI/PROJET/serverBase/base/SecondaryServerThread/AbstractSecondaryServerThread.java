@@ -59,11 +59,11 @@ public abstract class AbstractSecondaryServerThread extends Thread{
         catch (EndConnexionException e) {
             logs.writeLog("End Connexion Exception -> " + e.getMessage());
             if(e.getResponse() != null){
-                try {
+                /*try {
                     oos.writeObject(e.getResponse());
                 } catch (IOException ex) {
                     logs.writeLog("Error append while sending message [MESSAGE= " + e.getResponse() +"]");
-                }
+                }*/
             }
         }
         catch (ClassNotFoundException e) {
