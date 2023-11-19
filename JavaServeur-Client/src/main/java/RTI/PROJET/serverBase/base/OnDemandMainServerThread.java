@@ -21,7 +21,7 @@ public class OnDemandMainServerThread extends AbstractMainServerThread {
             Socket csocket;
 
             try {
-                logs.writeLog("Thread-Server [CONNECTION= PENDING]");
+                System.out.println("Thread-Server [CONNECTION= PENDING]");
                     serverSocket.setSoTimeout(2000);
                     csocket = serverSocket.accept();
                 logs.writeLog("Thread-Server [CONNECTION= ESTABLISHED, HOST="+ csocket.getInetAddress()+ ":" + csocket.getPort() +"]");
