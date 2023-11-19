@@ -1,6 +1,8 @@
 package RTI.Client;
 
-import RTI.PROJET.requetesNet.*;
+import RTI.PROJET.requetesNet.NewMessageDataType;
+import RTI.PROJET.requetesNet.NewReponse;
+import RTI.PROJET.requetesNet.NewRequest;
 import RTI.PROJET.structureDonnees.Facture;
 
 import javax.swing.*;
@@ -14,7 +16,6 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 public class UIClient extends JFrame{
     private JPanel panel1;

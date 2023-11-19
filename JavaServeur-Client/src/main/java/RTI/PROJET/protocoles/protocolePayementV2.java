@@ -2,19 +2,12 @@ package RTI.PROJET.protocoles;
 
 import RTI.PROJET.bean.JavaServerDAL;
 import RTI.PROJET.requetesNet.*;
-import RTI.PROJET.requetesSQL.RequeteSQLGetFactures;
-import RTI.PROJET.requetesSQL.RequeteSQLGetLogin;
-import RTI.PROJET.requetesSQL.RequeteSQLPayFacture;
-import RTI.PROJET.structureDonnees.Facture;
-import rti.utils.*;
+import RTI.PROJET.requetesSQL.*;
+import RTI.PROJET.serverBase.utils.*;
 
 import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class protocolePayementV2 implements Protocol {

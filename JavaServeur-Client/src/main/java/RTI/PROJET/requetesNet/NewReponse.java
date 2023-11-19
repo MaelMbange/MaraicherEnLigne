@@ -1,6 +1,7 @@
 package RTI.PROJET.requetesNet;
 
-import rti.utils.Response;
+
+import RTI.PROJET.serverBase.utils.Response;
 
 public class NewReponse implements Response {
     private String Header;

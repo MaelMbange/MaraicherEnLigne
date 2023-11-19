@@ -1,10 +1,10 @@
 package RTI.Server;
 
-import rti.serveur.AbstractMainServerThread;
-import RTI.PROJET.protocoles.*;
-import rti.serveur.OnDemandMainServerThread;
-import rti.serveur.OnPoolMainServerThread;
-import rti.utils.Logs;
+import RTI.PROJET.protocoles.protocolePayementV2;
+import RTI.PROJET.serverBase.base.AbstractMainServerThread;
+import RTI.PROJET.serverBase.base.OnDemandMainServerThread;
+import RTI.PROJET.serverBase.base.OnPoolMainServerThread;
+import RTI.PROJET.serverBase.utils.Logs;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
