@@ -2,6 +2,7 @@ package RTI.PROJET.serverBase.base.SecondaryServerThread;
 
 import RTI.PROJET.serverBase.utils.*;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -49,8 +50,11 @@ public abstract class AbstractSecondaryServerThread extends Thread{
                 Request request = (Request)ois.readObject();
                 Response response = protocol.treatment(request, csocket);
                 oos.writeObject(response);
-                logs.writeLog("4 -> " + (response.toString()));
+                //logs.writeLog("4 -> " + (response.toString()));
             }
+        }
+        catch(EOFException e){
+            logs.writeLog("DISTANT HOST IS DECONNECTED: [HOST=" + csocket.getInetAddress() + ":" + csocket.getPort() + "]");
         }
         catch (EndConnexionException e) {
             logs.writeLog("End Connexion Exception -> " + e.getMessage());
