@@ -1,12 +1,20 @@
 package org.secure.Client;
 
+import org.bouncycastle.operator.OperatorCreationException;
 import org.secure.utils.donnees.Facture;
 import org.secure.utils.interfaces.Reponse;
 import org.secure.utils.reponses.*;
 import org.secure.utils.requetes.RequeteGetFactures;
 import org.secure.utils.requetes.RequeteLogin;
 import org.secure.utils.requetes.RequetePayFacture;
+import org.secure.utilsCrypted.generator.CertificateGenerator;
+import org.secure.utilsCrypted.reponses.*;
+import org.secure.utilsCrypted.requetes.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.event.ActionEvent;
@@ -15,6 +23,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.*;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +53,13 @@ public class UIClient extends JFrame{
 
     ObjectInputStream ois   = null;
     ObjectOutputStream oos  = null;
+
+    /************************************/
+    //  Partie Cryptographie
+    KeyPair         clePair;
+    X509Certificate certificate;
+    SecretKey       cleSession;
+    /************************************/
 
 
     public UIClient(String ipADDR, int port){
@@ -86,7 +105,8 @@ public class UIClient extends JFrame{
                     EnvoyerLogin(textFieldUsername.getText(),textFieldPassword.getText());
                     AnalyseReponse(RecevoirReponse());
                 }
-                catch (IOException ex) {
+                catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+                       BadPaddingException | NoSuchProviderException | InvalidKeyException | ClassNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -123,9 +143,15 @@ public class UIClient extends JFrame{
                     {
                         int facture = (int)tableFacture.getValueAt(tableFacture.getSelectedRow(),0);
                         //setOptionPane("idFacture = " + facture.getIdFacture());
-                        EnvoyerPayerFacture(facture,textFieldPROPRIETAIRE.getText(),textFieldPassword.getText());
+                        EnvoyerPayerFacture(facture,textFieldPROPRIETAIRE.getText(),textFieldCARTE.getText());
 
-                        AnalyseReponse(RecevoirReponse());
+                        try {
+                            AnalyseReponse(RecevoirReponse());
+                        } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+                                 BadPaddingException | IOException | NoSuchProviderException | InvalidKeyException |
+                                 ClassNotFoundException ex) {
+                            throw new RuntimeException(ex);
+                        }
                     }
                 }
             }
@@ -140,7 +166,13 @@ public class UIClient extends JFrame{
                     EnvoyerGetFactures(idClient);
                 else EnvoyerGetFactures(2);
 
-                AnalyseReponse(RecevoirReponse());
+                try {
+                    AnalyseReponse(RecevoirReponse());
+                } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+                         BadPaddingException | IOException | NoSuchProviderException | InvalidKeyException |
+                         ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
                 /*NewReponse reponse =  RecevoirReponse();
                 setOptionPane(reponse.getContent());*/
             }
@@ -168,6 +200,10 @@ public class UIClient extends JFrame{
 
     public void setOptionPane(String message){
         JOptionPane.showMessageDialog(this,message);
+    }
+
+    public void colorPrint(String message){
+        System.out.println("\033[92m"+message+"\033[0m");
     }
 
     private static class TableFactureModel extends AbstractTableModel
@@ -226,39 +262,55 @@ public class UIClient extends JFrame{
         return null;
     }
 
+    //V
     public void EnvoyerGetFactures(int idClient){
         try {
-            oos.writeObject(new RequeteGetFactures(idClient));
+            sRequeteGetFactures requete = new sRequeteGetFactures(idClient,cleSession,clePair.getPrivate());
+            oos.writeObject(requete);
         }
-        catch (IOException ex) {
-            System.out.println("Error I/O : " + ex.getMessage());
+        catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+               BadPaddingException | SignatureException | NoSuchProviderException | InvalidKeyException ex) {
+            System.out.println("Error EnvoyerGetFacture : " + ex.getMessage());
         }
     }
 
+    //V
     public void EnvoyerLogin(String username,String password){
         try {
-            oos.writeObject(new RequeteLogin(username,password));
+            clePair = CertificateGenerator.generateKeyPair();
+            certificate = CertificateGenerator.generateSelfSignedCertificate(username,clePair);
+            sRequeteLogin requete = new sRequeteLogin(username,password,certificate);
+
+            oos.writeObject(requete);
+            colorPrint("Pair de clés: " + clePair.toString());
+            colorPrint("Certificat: " + certificate);
         }
-        catch (IOException ex) {
-            System.out.println("Error I/O : " + ex.getMessage());
+        catch (IOException | CertificateException | NoSuchAlgorithmException | NoSuchProviderException |
+               OperatorCreationException ex) {
+            System.out.println("Error EnvoyerLogin : " + ex.getMessage());
         }
     }
 
+    //V
     public void EnvoyerPayerFacture(int idFacture,String proprietaire,String NumeroCarte){
         try {
-            oos.writeObject(new RequetePayFacture(idFacture,proprietaire,NumeroCarte));
+            sRequetePayFacture requete = new sRequetePayFacture(idFacture,proprietaire,NumeroCarte,cleSession);
+            oos.writeObject(requete);
         }
-        catch (IOException ex) {
-            System.out.println("Error I/O : " + ex.getMessage());
+        catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | InvalidKeyException |
+               NoSuchAlgorithmException | BadPaddingException | NoSuchProviderException ex) {
+            System.out.println("Error EnvoyerPayerFacture: " + ex.getMessage());
         }
     }
 
-    public void AnalyseReponse(Reponse reponse){
+    public void AnalyseReponse(Reponse reponse) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, NoSuchProviderException, InvalidKeyException, ClassNotFoundException {
 
-        if(reponse instanceof ReponseLogin) {
-            if(((ReponseLogin) reponse).isSucceed()){
-                idClient = ((ReponseLogin) reponse).getIdClient();
+        if(reponse instanceof sReponseLogin) {
+            cleSession = ((sReponseLogin) reponse).get_secret_key_decrypted(clePair.getPrivate(),"AES");
+            if(((sReponseLogin) reponse).getSucced(cleSession)){
+                idClient = ((sReponseLogin) reponse).getIdClient(cleSession);
                 setOptionPane("Identifiant: " + idClient);
+                colorPrint("Cle de session obtenue: " + cleSession);
                 setLoginOK();
 
                 EnvoyerGetFactures(idClient);
@@ -273,29 +325,41 @@ public class UIClient extends JFrame{
                 ois = null;
                 csocket.close();
                 setLogoutOK();
+
+                certificate = null;
+                cleSession = null;
+                clePair = null;
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        else if (reponse instanceof ReponseGetFactures) {
+        else if (reponse instanceof sReponseGetFactures) {
             tf.clear();
-            if(!((ReponseGetFactures) reponse).getFactureList().isEmpty()){
-                tf = ((ReponseGetFactures) reponse).getFactureList();
+            if(!((sReponseGetFactures) reponse).getFactureList(cleSession).isEmpty()){
+                tf = ((sReponseGetFactures) reponse).getFactureList(cleSession);
                 tableFacture.setModel(new TableFactureModel(tf));
+                colorPrint("Factures: " + tf);
             }
         }
-        else if (reponse instanceof ReponsePayFacture) {
+        else if (reponse instanceof sReponsePayFacture) {
 
-            if(((ReponsePayFacture) reponse).isSucceed()){
-                setOptionPane("Payement reussi!");
-
-                EnvoyerGetFactures(idClient);
-                AnalyseReponse(RecevoirReponse());
+            if(((sReponsePayFacture) reponse).VerifyHMAC(cleSession)){
+                if(((sReponsePayFacture) reponse).isSucceed(cleSession)){
+                    setOptionPane("Payement reussi!");
+                    colorPrint("Payement: " + ((sReponsePayFacture) reponse).isSucceed(cleSession));
+                    EnvoyerGetFactures(idClient);
+                    AnalyseReponse(RecevoirReponse());
+                }
+                else setOptionPane("Payement échoué!");
             }
-            else setOptionPane("Payement échoué!");
-        }else if (reponse instanceof ReponseErreur) {
+            else setOptionPane("Erreur dans le HMAC !");
+        }
+        else if (reponse instanceof ReponseErreur) {
             System.out.println("Erreur : " + ((ReponseErreur) reponse).getError());
+            //certificate = null;
+            //cleSession = null;
+            //clePair = null;
         }
     }
 }

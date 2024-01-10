@@ -1,5 +1,6 @@
 package org.secure.protocoles;
 
+import org.secure.serveur.ContainerPublicKey;
 import org.secure.utils.bean.JavaServerDAL;
 import org.secure.utils.donnees.Facture;
 import org.secure.utils.exceptions.EOCException;
@@ -20,7 +21,9 @@ import org.secure.utils.requetesSQL.RequeteSQLGetFactures;
 import org.secure.utils.requetesSQL.RequeteSQLGetLogin;
 import org.secure.utils.requetesSQL.RequeteSQLPayFacture;
 
+import javax.crypto.SecretKey;
 import java.net.Socket;
+import java.security.PublicKey;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -64,6 +67,11 @@ public class ProtocoleRTI implements Protocol {
         catch(RuntimeException | SQLException e){
             logger.writeLog( "SQL error : " + e.getMessage() + " !!! ici !!!");
         }
+        return null;
+    }
+
+    @Override
+    public Reponse analyse(Requete request, SecretKey cleSession, ContainerPublicKey clePublicContainer) throws EOCException {
         return null;
     }
 

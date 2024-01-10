@@ -11,7 +11,7 @@ public class RequeteSQLGetLogin implements RequeteSQL {
 
     @Override
     public String getRequest() {
-        return "SELECT EXISTS (SELECT 1 FROM clients WHERE login = '" + this.Login + "' AND password = '" + this.Password + "'), id " +
+        return "SELECT EXISTS (SELECT 1 FROM clients WHERE login = '" + this.Login + "' AND password = '" + this.Password + "'), id , password " +
                 "FROM clients WHERE login = '" + this.Login + "' AND password = '" + this.Password + "'";
     }
 }

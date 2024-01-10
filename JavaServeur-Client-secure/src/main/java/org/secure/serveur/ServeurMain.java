@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 public class ServeurMain extends Thread{
 
@@ -48,6 +50,8 @@ public class ServeurMain extends Thread{
 
             } catch (IOException e) {
                 System.out.println("Thread-Server [ERROR= while accepting a connection]");
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                throw new RuntimeException(e);
             }
         }
         try {

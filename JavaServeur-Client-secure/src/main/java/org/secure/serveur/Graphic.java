@@ -1,7 +1,9 @@
 package org.secure.serveur;
 
 import org.secure.protocoles.ProtocoleRTI;
+import org.secure.protocoles.Vespaps;
 import org.secure.utils.interfaces.Logs;
+import org.secure.utils.interfaces.Protocol;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -43,8 +45,9 @@ public class Graphic extends JFrame implements Logs {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try{
-                    //IP_ADDR eest pour le lien avec la base de donnée
-                    ProtocoleRTI protocole = new ProtocoleRTI(Graphic.this,ipServeurDataBase);
+                    //IP_ADDR est pour le lien avec la base de donnée
+                    //ProtocoleRTI protocole = new ProtocoleRTI(Graphic.this,ipServeurDataBase);
+                    Protocol protocole = new Vespaps(Graphic.this,ipServeurDataBase);
 
                     threadServer = new ServeurMain(portServeur,protocole,Graphic.this);
 
@@ -104,7 +107,7 @@ public class Graphic extends JFrame implements Logs {
                 System.exit(1);
             }
             ipServeurDataBase = prop.getProperty("DB_IP_ADDR");
-            portServeur = Integer.parseInt(prop.getProperty("PORT_ACHAT_SERVEUR"));
+            portServeur = Integer.parseInt(prop.getProperty("PORT_PAIEMENT_SECURE"));
             fis.close();
 
             System.out.println("ipDB = " + ipServeurDataBase);
@@ -121,7 +124,7 @@ public class Graphic extends JFrame implements Logs {
         try {
             FileOutputStream fos = new FileOutputStream("./properties");
             Properties prop = new Properties();
-            prop.setProperty("PORT_ACHAT_SERVEUR","6500");
+            prop.setProperty("PORT_PAIEMENT_SECURE","6500");
             prop.setProperty("DB_IP_ADDR","__PUT_SERVER_ADDRESS__");
             prop.store(fos,null);
             fos.close();
