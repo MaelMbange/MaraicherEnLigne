@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Marchand</title>
+        <link href="css/styles.css" type="text/css" rel="stylesheet"></link>
+    </head>
+    <body>
+        <div id="container">
+            <div>
+                <h1 id="titre">Bienvenue sur le site du maraicher en ligne !</h1>
+            </div>
+            <div id="bloc1">
+                <div class="form-part">
+                    <table id="tableArticle">
+                        <tr>
+                            <td>id</td>
+                            <td>Article</td>
+                            <td>Prix à l'unité €</td>
+                            <td>Quantité</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>carottes</td>
+                            <td>2.16</td>
+                            <td>20</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>pommes</td>
+                            <td>1.69</td>
+                            <td>15</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="form-part">
+                    <form>
+                        <p>Article selectionné:</p>
+                        <div>
+                            <label for="Id">id =</label>
+                            <input id="Id" class="inputNotEditable" type="text" name="id" readonly><br>
+                        </div>
+                        <div>
+                            <label for="Articles">Articles =</label>
+                            <input id="Articles" class="inputNotEditable" type="text" name="Articles" readonly><br>
+                        </div>
+                        <div>
+                            <label for="Prix">Prix à l'unité =</label>
+                            <input id="Prix" class="inputEditable" type="number" name="Prix"><br>
+                        </div>
+                        <div>
+                            <label for="Quantite">Quantité =</label>
+                            <input id="Quantite" class="inputEditable" type="number" name="Quantite"><br>
+                        </div>
+                        <div>
+                            <input id="modifier" class="form-group" type="submit" value="Mettre à jour"><br>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-part">
+                    <img id="image" src="images/pommes.jpg" alt="Image non trouvée!"><br>
+                </div>
+            </div>
+        </div>
+    <script src="scripts/scripts.js"></script>
+    </body>
+</html>

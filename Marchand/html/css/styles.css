@@ -1,0 +1,75 @@
+html{
+    padding: 15px;
+    font-family: Arial, serif;
+}
+
+#container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#titre{
+    border: 2px solid black;
+    border-radius: 5px;
+    padding: 5px;
+    text-align: center;
+}
+
+#bloc1{
+    display: flex;
+}
+
+#image{
+    border: 2px solid black;
+    margin: 10px;
+}
+
+#tableArticle{
+    border-collapse: collapse;
+    border: 2px solid black;
+    text-align: center;
+}
+
+#tableArticle td{
+    border: 1px solid black;
+    padding: 10px;
+}
+
+#tableArticle tr:first-child{
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: black;
+}
+
+#tableArticle tr.selected {
+    background-color: lightyellow;
+}
+
+.form-part{
+    margin: 10px;
+}
+
+.inputNotEditable{
+    border-radius: 5px;
+    border: 1px solid black;
+    background-color: lightgrey;
+    padding: 5px;
+    margin: 5px;
+}
+
+.inputEditable{
+    border-radius: 5px;
+    border: 1px solid black;
+    background-color: lightsalmon;
+    padding: 5px;
+    margin: 5px;
+}
+
+.form-group{
+    margin-top: 10px;
+}
+
+.selected {
+    background-color: lightseagreen;
+}
